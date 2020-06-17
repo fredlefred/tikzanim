@@ -2,6 +2,7 @@
 \ProvidesPackage{tikzanim}[2020/05/20 montrer des constructions sous forme d'animation]
 
 \RequirePackage{xparse}
+\RequirePackage{xstring}
 \RequirePackage{listofitems}
 \RequirePackage{tikz}
 \RequirePackage{animate}
@@ -11,7 +12,21 @@
 
 \newwrite\tzc@tlnfile
 
-\NewDocumentCommand{\tikzanim}{O{controls} m O{} +m}{% [animateinline options] {frame rate} [tikz options] {construction's step}
+\NewDocumentCommand{\tzc@delay@calc}{m}{% \tzc@delay@calc{\tick}
+	\edef\delay{\tzc@delays@list[#1]}
+	\IfSubStr{\delay}{.}{
+		\StrCut{\delay}{.}\avant\apres
+		\xdef\tzc@delay@frames{\apres}
+		\foreach\t in{\numexpr#1+1\relax,...,\numexpr#1+\avant\relax}{
+			\pgfmathtruncatemacro{\tmp}{\tzc@delay@frames+\tzc@ticks@list[\t]}
+			\xdef\tzc@delay@frames{\tmp}
+		}
+	}{
+		\xdef\tzc@delay@frames{\delay}
+	}
+}
+
+\NewDocumentCommand{\tikzanim}{O{controls} m O{} +m +m}{% [animateinline options] {frame rate} [tikz options] {tikz's init code} {construction's step}
  	\xdef\tzc@ticks{}%
  	\xdef\tzc@delays{}%
  	\xdef\tzc@cmd@clear{}%
@@ -21,7 +36,7 @@
 	\let\step=\tzc@step@calc%
 	\let\allframes=\tzc@allframes@calc%
 	\setcounter{tzc@frametick}{0}%
-	#4%
+	#5%
 	% build the frame timeline :
  	\immediate\openout\tzc@tlnfile=\jobname.tzc\thetzc@anim@nb.tln%
  	\setsepchar{:}
@@ -34,8 +49,9 @@
 	\xdef\tzc@waiting@frames{}%
  	\foreach\tick in {1,...,\numexpr\tzc@ticks@listlen-1\relax}{% -1 parce qu'on fini les tableaux par une virgule et donc un dernier élément inexistant
 		\ifnum\tzc@ticks@list[\tick]=0\relax%
-		%
-			\expandafter\xdef\expandafter\tzc@waiting@frames\expandafter{\tzc@waiting@frames\tzc@cmds@list[\tick]\thetzc@frametick x\tzc@delays@list[\tick],}
+			%prev value : \tzc@delays@list[\tick]
+			\tzc@delay@calc{\tick}
+			\expandafter\xdef\expandafter\tzc@waiting@frames\expandafter{\tzc@waiting@frames\tzc@cmds@list[\tick]\thetzc@frametick x\tzc@delay@frames,}
 			\stepcounter{tzc@frametick}%
 		\else%
 			\foreach\frame in {1,...,\tzc@ticks@list[\tick]}{%
@@ -49,7 +65,9 @@
 					\ifnum\tzc@delays@list[\tick]=0\relax%
 						\immediate\write\tzc@tlnfile{\timeline x\numexpr\tzf@frames@nb-\thetzc@frametick\relax}%
 					\else%
-						\immediate\write\tzc@tlnfile{\timeline x\tzc@delays@list[\tick]}%
+						%prev value : \tzc@delays@list[\tick]
+						\tzc@delay@calc{\tick}
+						\immediate\write\tzc@tlnfile{\timeline x\tzc@delay@frames}%
 					\fi%
 				\else%
 					\immediate\write\tzc@tlnfile{\timeline}%
@@ -62,35 +80,29 @@
 	\begin{animateinline}[poster=last,timeline=\jobname.tzc\thetzc@anim@nb.tln,#1]{#2}%
 		\multiframe{\thetzc@frametick}{iframe=0+1}{%
 			\setcounter{tzc@frametick}{0}%
-			\begin{tikzpicture}[#3]%
+			\begin{tikzpicture}[remember picture,#3]%
 				\let\step=\tzc@step@tikz%
 				\let\allframes=\tzc@allframes@tikz%
 				#4%
+				#5%
 			\end{tikzpicture}%
 		}%
 	\end{animateinline}%
 	\stepcounter{tzc@anim@nb}%
 }
 
-\NewDocumentCommand{\tzc@step@tikz}{s O{0} m O{0} +m +m}{% *(clear) [framerate] {#frames count} [duration] { will be drawn for all new steps } { will be drawn for this step }
+\NewDocumentCommand{\tzc@step@tikz}{s O{0} m O{0} +m}{% *(clear) [framerate] {#frames count} [duration] { will be drawn for all new steps } { will be drawn for this step }
 % <macro name> will go from 0 to 1 by 1/step count 
 	\ifnum\numexpr\iframe+1>\thetzc@frametick\relax%
 		\ifnum#3=0\relax%
-			\pgfmathsetmacro{\framepos}{1}%
-		\else%
-			\pgfmathsetmacro{\framepos}{min(max(0,\iframe-\thetzc@frametick+1),#3)/#3}%
-		\fi%
-		% from this step
-		#5%
-		\ifnum#3=0\relax%
 			\ifnum\iframe=\thetzc@frametick\relax%
-				% show only on this step (those <frames count> frames)
-				#6%
+				\pgfmathsetmacro{\framepos}{1}%
+				#5%
 			\fi%
 		\else
 			\ifnum\iframe<\numexpr\thetzc@frametick+#3\relax%
-				% show only on this step (those <frames count> frames)
-				#6%
+				\pgfmathsetmacro{\framepos}{min(max(0,\iframe-\thetzc@frametick+1),#3)/#3}%
+				#5%
 			\fi%
 		\fi
 	\fi%
@@ -102,7 +114,7 @@
 	\xdef\tzc@cmd@clear{}
 }
 
-\NewDocumentCommand{\tzc@step@calc}{s O{0} m O{0} +m +m}{% stores ticks in  \tzc@ticks, and count frames (internal)
+\NewDocumentCommand{\tzc@step@calc}{s O{0} m O{0} +m}{% stores ticks in  \tzc@ticks, and count frames (internal)
 	\ifnum#3>0\relax%
 		\addtocounter{tzc@frametick}{#3}%
 	\else%
