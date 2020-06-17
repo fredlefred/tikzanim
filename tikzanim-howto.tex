@@ -4,6 +4,7 @@
 \usepackage{amsmath}
 \usepackage{multicol}
 \usepackage{enumitem}
+\usepackage[dvipdfmx]{animate}
 \usepackage{tikzanim}
 \usepackage[francais]{babel}
 \usetikzlibrary{calc,intersections,tikzmark,decorations.pathreplacing}
@@ -69,7 +70,7 @@
 
 \TikzAnimate\ permet de réaliser simplement des animations en \LaTeX à l'aide de \Tikz\ et \Animate\ en décrivant les différentes étapes de l'animation par un code \Tikz\ standard.
 
-Une animation est constituée d'un certaine nombre d'étapes. Chaque étape dessine des transparents qui sont combinés les uns aux autres pour créer les images du morceau d'animation qu'elle constitue.
+Une animation est constituée d'un certaine nombre d'étapes. Chaque étape dessine des transparents qui sont combinés les uns aux autres pour créer les images de l'étape d'animation qu'elle constitue.
 
 
 \section{Les macros offertes par \TikzAnimate}
@@ -80,16 +81,17 @@ Une animation est constituée d'un certaine nombre d'étapes. Chaque étape dess
 	
 	\textbf{Syntaxe~:} 
 	
-	\quad {\ttfamily \textbackslash tikzanim [options animateinline] \{rafraîchissement\} [options tikz] \{étapes\}}
+	\quad {\ttfamily \textbackslash tikzanim [options animateinline] \{rafraîchissement\} [options tikz] \{initialisation\}\{étapes\}}
 	
 	\begin{itemize}
 		\item {\ttfamily [options animateinline]} : les options qui seront passées à l'environnement {\ttfamily animateinline}.
 		
 		Valeur par défaut : {\ttfamily poster=last,controls}
 		\item {\ttfamily \{rafraîchissement\}} : le nombre d'images par seconde au début de l'animation. Il peut être modifié à chaque étape.
-		\item {\ttfamily [options tikz]} : les options qui seront passée à l'environnement {\ttfamily tikzpicture}.
+		\item {\ttfamily [options tikz]} : les options qui seront passées à l'environnement {\ttfamily tikzpicture}.
 		
-		Valeur par défaut : pas d'options
+		Valeur par défaut : pas d'option
+		\item {\ttfamily \{initialisation\}} : le code d'initialisation. Ce code sera appelé pour tous les transparents. À minima, ce code devrait contenir un appel à {\ttfamily\textbackslash useasboundingbox} pour fixer la même taille à tous les transparents.
 		\item {\ttfamily \{étapes\}} : la suite des différentes étapes de l'animation. 
 	\end{itemize}
 	
@@ -97,16 +99,16 @@ Une animation est constituée d'un certaine nombre d'étapes. Chaque étape dess
 
 	Cette macro définit une nouvelle étape de l'animation. \Animate\ définit une pile de transparents. Chaque image de l'animation est générée par l'affichage 
 	de toutes la pile de transparents à chaque instant. Le rôle de {\ttfamily\textbackslash step} est de gérer la création (avec \Tikz) et la gestion cette pile
-	(en générant un fichier timeline) pour créer les différentes images qui permettrons créer l'animation.
+	(en générant un fichier timeline) pour créer les différents transparents qui permettrons créer les images de l'animation.
 		
 	Au début de l'animation, la pile est vide. Un appel à {\ttfamily\textbackslash step} va :
 	
 	\begin{enumerate}[label=(\arabic*)]
-		\item Générer la prermière image de cette étape et la déposer sur la pile pour une durée de un image.
-		\item \tikzmark{boucle}Enlever la dernière image de la pile.
-		\item Générer l'image suivante et la déposer sur la pile pour une durée de un image.
+		\item Générer le premier transparent cette étape et le déposer sur la pile pour une durée de une image, puis générer la première image.
+		\item \tikzmark{boucle}Enlever le dernier transparent la pile.
+		\item Générer le transparent suivant et le déposer sur la pile pour une durée de un image, puis générer l'image suivante.
 		\item \tikzmark{test}Si ce n'est pas la fin de l'étape, on boucle vers (2).
-		\item Si c'est la fin de l'étape, on laisse la dernière image pour une durée définie.
+		\item Si c'est la fin de l'étape, on laisse le dernier transparent pour une durée définie.
 		
 	\end{enumerate}
 	\begin{tikzpicture}[remember picture,overlay]
@@ -116,33 +118,29 @@ Une animation est constituée d'un certaine nombre d'étapes. Chaque étape dess
 	
 	\textbf{Syntaxe :}
 	
-	\quad {\ttfamily\textbackslash step[*] [rafraîchissement] \{images\} [durée] \{initialisation\} \{dessin\} }
+	\quad {\ttfamily\textbackslash step[*] [rafraîchissement] \{images\} [durée] \{dessin\} }
 	
 	\begin{itemize}
 		\item {\ttfamily *} : la version étoilée, vide la pile de transparents au début de l'étape.
 		\item {\ttfamily[rafraîchissement]} : définit le nouveau nombre d'images par seconde.
 		
 		Valeur par défaut : 0, c'est à dire le dernier nombre d'images par seconde définit par {\ttfamily\textbackslash tikzanim} ou {\ttfamily\textbackslash step}.
-		\item {\ttfamily\{images\}} : définit le nombre de images que doit générer {\ttfamily\textbackslash step}. Si ce nombre est 0. L'image est créée, mais aucune image n'est créée
-		pour elle. L'image peut tout de même avoir une durée. Cela permet de dessiner dans des étapes différentes des objets qui auront des durées d'affichage différentes.
+		\item {\ttfamily\{images\}} : définit le nombre de images que doit générer {\ttfamily\textbackslash step}. Si ce nombre est 0. Le transparent est déposé sur la pile pour la durée
+		définie, mais aucune image n'est créée pour celui-ci. Cela permet de dessiner dans des étapes différentes des objets qui auront des durées d'affichage différentes.
 		
-		\item {\ttfamily[durée]} : définit le temps pendant lequel la derniére image doit durer (en nombre d'images).
+		\item {\ttfamily[durée]} : définit le temps pendant lequel le dernier transparent doit durer (en nombre d'images).
 		
 		Valeur par défaut : 0, c'est à dire jusqu'à la fin de l'animation.
-		\item {\ttfamily\{initialisation\}} : définit le code \Tikz\ d'initialisation. Comme l'animation est générée par étape, pour pouvoir réutiliser des éléments 
-		des étapes précédentes aux étapes suivantes, il faut que ces éléments soit définis. C'est dans le code d'initialisation qu'il faut le faire.
-		
-		Pour que le code d'initialisation dépende du transparent en train d'être générer, on peut utiliser :
-		\begin{itemize}
-			\item {\ttfamily\textbackslash framepos} qui vaut 0 au  début de l'étape et varie de façon linéaire jusqu'à 1 à la fin de l'étape. Cette macro est gérée par {\ttfamily\textbackslash step}.
-			\item {\ttfamily\textbackslash iframe} qui est égale au numéro du transparent en cours de génération. Cette macro est gérée par {\ttfamily\textbackslash multiframe} du package \Animate.
-		\end{itemize}
-		
-		\emph{Remarque~: pour fixer une taille identique pour toutes les images, le code d'initialisation de la première étape devrait toujours contenir un appel à 
-		{\ttfamily\textbackslash useasboundingbox} }
 
 		\item {\ttfamily\{dessin\}} : définit le code \Tikz\ chargé de dessiner les différents transparents. Ce code peut utiliser tout ce qui se trouve dans
-		les codes d'initialisation des étapes précédentes, ainsi que {\ttfamily\textbackslash framepos} et {\ttfamily\textbackslash iframe}.
+		les codes d'initialisation des étapes précédentes, ainsi que les macros {\ttfamily\textbackslash framepos} et {\ttfamily\textbackslash iframe} pour que 
+		ce qui est dessiné dépende de l'image en train d'être dessinée.
+		
+		\begin{itemize}
+			\item La macro {\ttfamily\textbackslash framepos} vaut 0 au  début de l'étape et varie de façon linéaire jusqu'à 1 à la fin de l'étape. Cette macro est gérée par {\ttfamily\textbackslash step}.
+			\item La macro {\ttfamily\textbackslash iframe} est égale au numéro du transparent en cours de génération. Cette macro est gérée par {\ttfamily\textbackslash multiframe} du package \Animate.
+		\end{itemize}
+		
 	\end{itemize}
 	
 	\begin{multicols}{2}
@@ -174,24 +172,23 @@ Une animation est constituée d'un certaine nombre d'étapes. Chaque étape dess
 }
 	\end{lstlisting}
 	
-	{Crée l'animation~:}
+	{Crée l'animation ci-contre~:}
 	
 	\bigskip
 	
 	\centering
 	% \usepackage{tikzanim}
 	\tikzanim{10}{
+		\useasboundingbox(-0.1,0.1)rectangle(5.1,2.6) ;
+	}{
 		\step{30}[15]{
 			\coordinate(A)at(0,0) ;
 			\coordinate(B)at(5,2.5) ;
-			\useasboundingbox(A)rectangle(B) ;
-		}{
 			\draw(A)--($(A)!\framepos!(B)$) ;
 		}
 		\step[20]{30}{
 			% pas d'initialisation, C et D ne
 			% sont pas utilisés par la suite
-		}{
 			\coordinate(C)at(0,2.5) ;
 			\coordinate(D)at(5,0) ;
 			\draw(C)--($(C)!\framepos!(D)$) ;
@@ -200,12 +197,12 @@ Une animation est constituée d'un certaine nombre d'étapes. Chaque étape dess
 	
 	\end{multicols}
 	
-	\textbf{Schéma de fonctionnement :}
+	\textbf{Schéma de la pile de transparents~:}
 	
 	\medskip
 	
 \newcounter{dy} 
-\newcommand{\transparentlist}[2]{
+\newcommand{\transparentliste}[2]{
 	\stepcounter{dy}	
 	\foreach\f in {#1}{
 		\pgfmathsetmacro{\c}{\f*5}
@@ -219,8 +216,8 @@ Une animation est constituée d'un certaine nombre d'étapes. Chaque étape dess
 		\draw[decorate,decoration={brace,amplitude=10pt},thick,xshift=#1] (12,-0.8*#2-0.05) --node[right,xshift=10pt,text width=7cm,font=\ttfamily,shape=rectangle]{#4} (12,-0.8*#3+0.05);
 }
 
-\newcommand{\entoure}[4][red,thick,densely dashed]{
-	\draw[#1] (#2*0.1-0.05,-#4*0.8-0.125) -- ++(0,{(#4-#3+1)*0.8-0.05}) -- ++(0.4,0.4) -- ++ (0,{-(#4-#3+1)*0.8+0.05}) -- cycle ;
+\newcommand{\entoure}[4][]{
+	\filldraw[red,thick,densely dashed,fill opacity=0.333,#1] (#2*0.1-0.05,-#4*0.8-0.125) -- ++(0,{(#4-#3+1)*0.8-0.05}) -- ++(0.4,0.4) -- ++ (0,{-(#4-#3+1)*0.8+0.05}) -- cycle ;
 }
 
 \newcommand{\limite}[2][teal!50,thick,densely dotted]{
@@ -233,64 +230,65 @@ Une animation est constituée d'un certaine nombre d'étapes. Chaque étape dess
 	\entoure{0}{1}{18}
 
 	%\def\label{Liste de transparents : }
-	%\transparentlist{0,...,20}{\label}
+	%\transparentliste{0,...,20}{\label}
 	\def\label{Image \thedy, constituée des transparents : }
 	
 	
-	\transparentlist{0,1}{\label}
-	\transparentlist{0,2}{\label}
-	\transparentlist{0,3}{\label}
-	\transparentlist{0,4}{\label}
-	\transparentlist{0,5}{\label}
+	\transparentliste{0,1}{\label}
+	\transparentliste{0,2}{\label}
+	\transparentliste{0,3}{\label}
+	\transparentliste{0,4}{\label}
+	\transparentliste{0,5}{\label}
 	
 	\entoure{6}{6}{9}
 	
-	\transparentlist{0,6}{\label}
+	\transparentliste{0,6}{\label}
 	
 	\acc{0}{6}{ 
 		\textbackslash step\{0\}{\color{red}[18]}\{...\}\\ 
-		{\sffamily ajoute 1 transparent qui dure 18 images, sans ajouter d'image}\\
+		{\rmfamily ajoute 1 transparent qui dure {\color{red}18 images}, sans ajouter d'image}\\
 		\textbackslash step\{6\}{\color{red}[4]}\{...\}\\
-		{\sffamily ajoute 6 transparents et 6 images, le dernier dure 4 images}
+		{\rmfamily ajoute 6 transparents et 6 images, le dernier dure \color{red}4 images}
 	}
 	
 	\limite{6}
 	
-	\transparentlist{0,6,7}{\label}
-	\transparentlist{0,6,8}{\label}
-	\transparentlist{0,6,9}{\label}
-	\transparentlist{0,10}{\label}
-	\transparentlist{0,11}{\label}
+	\transparentliste{0,6,7}{\label}
+	\transparentliste{0,6,8}{\label}
+	\transparentliste{0,6,9}{\label}
+	\transparentliste{0,10}{\label}
+	\transparentliste{0,11}{\label}
 
 	\acc{6}{11}{ 
 		\textbackslash step\{5\}\{...\} \\
-		{\sffamily ajoute 5 transparents et 5 images}
+		{\rmfamily ajoute 5 transparents et 5 images}
 	}
 	
 	\limite{11}
 	
-	\transparentlist{0,11,12}{\label}
-	\transparentlist{0,11,13}{\label}
-	\transparentlist{0,11,14}{\label}
-	\transparentlist{0,11,15}{\label}
+	\transparentliste{0,11,12}{\label}
+	\transparentliste{0,11,13}{\label}
+	\transparentliste{0,11,14}{\label}
+	\transparentliste{0,11,15}{\label}
+	
 	\entoure{16}{16}{18}
-	\transparentlist{0,11,16}{\label}
+	\transparentliste{0,11,16}{\label}
 	
 	\acc{11}{16}{
 		\textbackslash step\{5\}{\color{red}[3]}\{...\} \\
-		{\sffamily ajoute 5 transparents et 5 images, le dernier dure 3 images}
+		{\rmfamily ajoute 5 transparents et 5 images, le dernier dure \color{red}3 images}
 	}
 	
 	\limite{16}
 	
-	\transparentlist{0,11,16,17}{\label}
-	\transparentlist{0,11,16,18}{\label}
-	\transparentlist{11,19}{\label}
-	\transparentlist{11,20}{\label}
+	\transparentliste{0,11,16,17}{\label}
+	\transparentliste{0,11,16,18}{\label}
+	\transparentliste{11,19}{\label}
+	\transparentliste{11,20}{\label}
 	
 	\acc{16}{20}{
 		\textbackslash step\{4\}\{...\} \\
-		{\sffamily ajoute 4 transparents et 4 images}
+		{\rmfamily ajoute 4 transparents et 4 images}
 	}
 
 \end{tikzpicture}
@@ -328,15 +326,16 @@ Quelques initialisations.
 \begin{lstlisting}[name=exemplecomplet]
 
 \tikzanim[poster=0,controls]{1}{
+	% initialisation 
+	\useasboundingbox(-0.1,-\bLen-0.1)rectangle(\aLen+\bLen+0.1,\aLen+0.1) ;
+}
 \end{lstlisting}
 On crée une animation à une image par seconde (au départ).
 
 Puis, on crée les points servants à la construction, en même temps qu'un permier transparent qui ne sera affiché qu'à la prochaine image.
 \begin{lstlisting}[name=exemplecomplet]
-	\step{0}[1]{
-		% initialisation 
-		\useasboundingbox(0,-\bLen)rectangle(\aLen+\bLen,\aLen) ;
-		
+{
+	\step{0}[1]{		
 		\coordinate(A)at(0,0) ;
 		\coordinate(B)at(\aLen,0) ;
 		\coordinate(C)at(\aLen,\aLen) ;
@@ -352,25 +351,24 @@ Puis, on crée les points servants à la construction, en même temps qu'un perm
 
 		\coordinate(I)at(0,\aLen-\bLen) ;
 		\coordinate(J)at($(A)+(H)-(G)$);
-	}{
 		% premier morceau
 		\fill[bleu] (C) -- (D) -- (I) -- cycle ;
 	}
 \end{lstlisting}
 
-On crée un nouveau transparent qui ne sera affiché qu'avec la prochaine image.
+On crée un nouveau transparent qui ne sera affiché qu'avec la prochaine image jusqu'à jusqu'à la fin de la $4^\text{ème}$ étape après elle..
 
 \begin{lstlisting}[name=exemplecomplet]
-	\step{0}[12]{}{
+	\step{0}[4.0]{
 		% deuxième morceau
 		\fill[bleu] (I) -- (A) -- (J) -- cycle ;
 	}
 \end{lstlisting}
 
-On crée encore un nouveau transparent qui ne sera affiché qu'avec la prochaine image.
+On crée encore un nouveau transparent qui ne sera affiché qu'avec la prochaine image jusqu'à la fin de la $5^\text{ème}$ étape après elle. .
 
 \begin{lstlisting}[name=exemplecomplet]
-	\step{0}[23]{}{
+	\step{0}[5.0]{
 		% troisième morceau
 		\fill[rouge] (E) -- (F) -- (H) -- cycle ;
 	}
@@ -381,7 +379,6 @@ contiennent commencera.
 
 \begin{lstlisting}[name=exemplecomplet]
 	\step{1}{
-	}{
 		% figure de départ sans les morceaux
 		\draw (A) -- (B) -- (C) -- (D) --cycle ;
 		\draw (B) -- (E) -- (F) -- (G) --cycle ;
@@ -398,12 +395,11 @@ que le dernier transparent ne sera pas affiché sur les images qui suivent cette
 \begin{lstlisting}[name=exemplecomplet]
 	% déplacement du premier triangle
 	\step[5]{10}[1]{
-		\coordinate(M)at($(C)!\framepos!(E)$);% Pt à #1 sur [CE]
+		\coordinate(M)at($(C)!\framepos!(E)$);% Point à \framepos sur [CE]
 		\coordinate(CM)at($(M)-(C)$) ;
 		\coordinate(ICM)at($(I)+(CM)$);
 		\coordinate(CCM)at($(C)+(CM)$);
 		\coordinate(DCM)at($(D)+(CM)$);
-	}{
 		% on affiche une flèche en plus du triangle pour bien voir d'où vient le triangle.
 		\coordinate(S)at(barycentric cs:I=1,C=1,D=1);
 		\coordinate(S')at(barycentric cs:ICM=1,CCM=1,DCM=1);
@@ -418,24 +414,23 @@ Comme dernier transparent ne dure qu'une image, le triangle final ne reste pas d
 
 \begin{lstlisting}[name=exemplecomplet]
 	% position finale
-	\step{1}{}{
+	\step{1}{
 		\fill[bleu] (ICM) -- (CCM) -- (DCM) -- cycle ;
 		\draw[densely dotted] (ICM) -- (CCM) ;
 		\draw (CCM) -- (DCM) -- (ICM) ;
 	}
 \end{lstlisting}
 
-On procède de même pour les 2 autres triangles.
+On procède de même pour le deuxième triangle.
 
 \begin{lstlisting}[name=exemplecomplet]
 	% déplacement du deuxième triangle
 	\step{10}[1]{
-		\coordinate(N)at($(I)!\framepos!(C)$);% Pt à #1 sur [IC]
+		\coordinate(N)at($(I)!\framepos!(C)$);% Point à \framepos sur [IC]
 		\coordinate(IN)at($(N)-(I)$) ;
 		\coordinate(IIN)at($(I)+(IN)$);
 		\coordinate(JIN)at($(J)+(IN)$);
 		\coordinate(AIN)at($(A)+(IN)$);
-	}{
 		\coordinate(T)at(barycentric cs:I=1,J=1,A=1);
 		\coordinate(T')at(barycentric cs:IIN=1,JIN=1,AIN=1);
 		\fill[bleu] (IIN) -- (JIN) -- (AIN) -- cycle ;
@@ -444,19 +439,23 @@ On procède de même pour les 2 autres triangles.
 		\draw[-latex](T)--(T') ;
 	}
 	% position finale
-	\step{1}{}{
+	\step{1}{
 		\fill[bleu] (IIN) -- (JIN) -- (AIN) -- cycle ;
 		\draw[densely dotted] (IIN) -- (JIN) ;
 		\draw (JIN) -- (AIN) -- (IIN) ;
 	}
+\end{lstlisting}
+
+On procède de même pour le troisième triangle.
+
+\begin{lstlisting}[name=exemplecomplet]
 	% déplacement du troisième triangle
 	\step{10}[1]{
-		\coordinate(P)at($(H)!\framepos!(J)$);% Pt à #1 sur [HJ]
+		\coordinate(P)at($(H)!\framepos!(J)$);% Point à \framepos sur [HJ]
 		\coordinate(HP)at($(P)-(H)$) ;
 		\coordinate(EHP)at($(E)+(HP)$);
 		\coordinate(FHP)at($(F)+(HP)$);
 		\coordinate(HHP)at($(H)+(HP)$);
-	}{
 		\coordinate(U)at(barycentric cs:E=1,F=1,H=1);
 		\coordinate(U')at(barycentric cs:EHP=1,FHP=1,HHP=1);
 		\fill[rouge] (EHP) -- (FHP) -- (HHP) -- cycle ;
@@ -465,7 +464,7 @@ On procède de même pour les 2 autres triangles.
 		\draw[-latex](U)--(U') ;
 	}
 	% position finale
-	\step{1}{}{
+	\step{1}{
 		\fill[rouge] (EHP) -- (FHP) -- (HHP) -- cycle ;
 		\draw[densely dotted] (EHP) -- (HHP) ;
 		\draw (EHP) -- (FHP) -- (HHP) ;
@@ -477,16 +476,15 @@ On procède de même pour les 2 autres triangles.
 
 Une démonstration visuelle du théorème de Pythagore.
 
-\begin{center}
-
 \gdef\aLen{5}
 \gdef\bLen{2}
 \pgfmathsetmacro{\cLen}{sqrt(\aLen^2+\bLen^2)}
 \tikzset{bleu/.style={fill=blue!30,fill opacity=0.5},rouge/.style={fill=red!30,fill opacity=0.5}} 
 
 \tikzanim[poster=0,controls]{5}{
+	\useasboundingbox(0,-\bLen)rectangle(\aLen+\bLen,\aLen) ;
+}{
 	\step[1]{0}[1]{
-		\useasboundingbox(0,-\bLen)rectangle(\aLen+\bLen,\aLen) ;
 		
 		\coordinate(A)at(0,0) ;
 		\coordinate(B)at(\aLen,0) ;
@@ -503,17 +501,15 @@ Une démonstration visuelle du théorème de Pythagore.
 
 		\coordinate(I)at(0,\aLen-\bLen) ;
 		\coordinate(J)at($(A)+(H)-(G)$);
-	}{
 		\fill[bleu] (C) -- (D) -- (I) -- cycle ;
 	}
-	\step{0}[12]{}{
+	\step{0}[4.0]{
 		\fill[bleu] (I) -- (A) -- (J) -- cycle ;
 	}
-	\step{0}[23]{}{
+	\step{0}[5.0]{
 		\fill[rouge] (E) -- (F) -- (H) -- cycle ;
 	}
 	\step{1}{
-	}{
 		\draw (A) -- (B) -- (C) -- (D) --cycle ;
 		\draw (B) -- (E) -- (F) -- (G) --cycle ;
 		
@@ -525,12 +521,11 @@ Une démonstration visuelle du théorème de Pythagore.
 	}
 
 	\step[5]{10}[1]{
-		\coordinate(M)at($(C)!\framepos!(E)$);% Pt à #1 sur [CE]
+		\coordinate(M)at($(C)!\framepos!(E)$);% Point à \framepos sur [CE]
 		\coordinate(CM)at($(M)-(C)$) ;
 		\coordinate(ICM)at($(I)+(CM)$);
 		\coordinate(CCM)at($(C)+(CM)$);
 		\coordinate(DCM)at($(D)+(CM)$);
-	}{
 		\coordinate(S)at(barycentric cs:I=1,C=1,D=1);
 		\coordinate(S')at(barycentric cs:ICM=1,CCM=1,DCM=1);
 		\fill[bleu] (ICM) -- (CCM) -- (DCM) -- cycle ;
@@ -539,19 +534,18 @@ Une démonstration visuelle du théorème de Pythagore.
 		\draw[-latex](S)--(S') ;
 	}
 	
-	\step{1}{}{
+	\step{1}{
 		\fill[bleu] (ICM) -- (CCM) -- (DCM) -- cycle ;
 		\draw[densely dotted] (ICM) -- (CCM) ;
 		\draw (CCM) -- (DCM) -- (ICM) ;
 	}
 	
 	\step{10}[1]{
-		\coordinate(N)at($(I)!\framepos!(C)$);% Pt à #1 sur [IC]
+		\coordinate(N)at($(I)!\framepos!(C)$);% Point à \framepos sur [IC]
 		\coordinate(IN)at($(N)-(I)$) ;
 		\coordinate(IIN)at($(I)+(IN)$);
 		\coordinate(JIN)at($(J)+(IN)$);
 		\coordinate(AIN)at($(A)+(IN)$);
-	}{
 		\coordinate(T)at(barycentric cs:I=1,J=1,A=1);
 		\coordinate(T')at(barycentric cs:IIN=1,JIN=1,AIN=1);
 		\fill[bleu] (IIN) -- (JIN) -- (AIN) -- cycle ;
@@ -560,19 +554,18 @@ Une démonstration visuelle du théorème de Pythagore.
 		\draw[-latex](T)--(T') ;
 	}
 	
-	\step{1}{}{
+	\step{1}{
 		\fill[bleu] (IIN) -- (JIN) -- (AIN) -- cycle ;
 		\draw[densely dotted] (IIN) -- (JIN) ;
 		\draw (JIN) -- (AIN) -- (IIN) ;
 	}
 	
 	\step{10}[1]{
-		\coordinate(P)at($(H)!\framepos!(J)$);% Pt à #1 sur [HJ]
+		\coordinate(P)at($(H)!\framepos!(J)$);% Point à \framepos sur [HJ]
 		\coordinate(HP)at($(P)-(H)$) ;
 		\coordinate(EHP)at($(E)+(HP)$);
 		\coordinate(FHP)at($(F)+(HP)$);
 		\coordinate(HHP)at($(H)+(HP)$);
-	}{
 		\coordinate(U)at(barycentric cs:E=1,F=1,H=1);
 		\coordinate(U')at(barycentric cs:EHP=1,FHP=1,HHP=1);
 		\fill[rouge] (EHP) -- (FHP) -- (HHP) -- cycle ;
@@ -581,13 +574,12 @@ Une démonstration visuelle du théorème de Pythagore.
 		\draw[-latex](U)--(U') ;
 	}
 	
-	\step{1}{}{
+	\step{1}{
 		\fill[rouge] (EHP) -- (FHP) -- (HHP) -- cycle ;
 		\draw[densely dotted] (EHP) -- (HHP) ;
 		\draw (EHP) -- (FHP) -- (HHP) ;
 	}
 }
 
-\end{center}
 
 \end{document}
