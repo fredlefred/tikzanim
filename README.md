@@ -11,7 +11,9 @@ create frames of the part’s step.
 This macro uses a animateinline’s environment, \multiframe and a tikzpicture’s environment to
 prepare animationntes images).
 Syntax :
-`\tikzanim [animateinline’s options] {frame rate} [tikz’s options] {initialisation} {steps}`
+`\tikzanim <overlay> [animateinline’s options] {frame rate} [tikz’s options] {initialisation} {steps}`
+* `<overlay>` : overlay number on which animation will be shown. Before this number, first frame of animation will be dran. After this number, last frame of animation will be drawn.
+Prefer a single number for the overlay, or animation will be render multiple times.}
 *  `[animateinline’s options]` : options which are pass to animateinline’s environment.
 Défault value : poster=last,controls
 * `{frame rate}` : the starting frame rate. Each step can change it.
