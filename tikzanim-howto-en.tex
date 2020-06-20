@@ -4,8 +4,8 @@
 \usepackage{amsmath}
 \usepackage{multicol}
 \usepackage{enumitem}
+\usepackage[margin=1cm,includefoot]{geometry}
 \usepackage{tikzanim}
-
 \usetikzlibrary{calc,intersections,tikzmark,decorations.pathreplacing}
 
 \usepackage{hyperref}
@@ -16,6 +16,7 @@
 	columns=fullflexible,
 	language={[LaTeX]TeX},
 	tabsize=2,
+	breaklines,
 	xleftmargin=2em,
 	backgroundcolor=\color{black!10},
 	numbers=left,
@@ -28,12 +29,6 @@
 	emphstyle=\color{purple},
 	commentstyle=\color{green!75!black},
 }
-
-\RequirePackage{vmargin,fancyhdr}
-
-\setmarginsrb{1cm}{1cm}{1cm}{1cm}{0cm}{0cm}{0cm}{1cm}
-
-\usetikzlibrary{calc}% a must to calculate animate steps
 
 \tikzset{construct line/.style={densely dashed,black!25}}
 
@@ -83,9 +78,12 @@ A \TikzAnimate's animation is made of steps. Each step draws transparencies whic
 	
 	\textbf{Syntax~:} 
 	
-	\quad {\ttfamily \textbackslash tikzanim [animateinline's options] \{frame rate\} [tikz's options] \{initialisation\} \{steps\}}
+	\quad {\ttfamily \textbackslash tikzanim <overlay> [animateinline's options] \{frame rate\} [tikz's options] \{initialisation\} \\ \{steps\}}
 	
 	\begin{itemize}
+		\item {\ttfamily <overlay>} : overlay number on which animation will be shown. Before this number, first frame of animation will be dran. After this number, last frame of animation will be drawn.
+		
+		\emph{Prefer a single number for the overlay, or animation will be render multiple times.}
 		\item {\ttfamily [animateinline's options]} : options which are pass to {\ttfamily animateinline}'s environment.
 		
 		Défault value : {\ttfamily poster=last,controls}
@@ -216,7 +214,7 @@ A \TikzAnimate's animation is made of steps. Each step draws transparencies whic
 }
 
 \newcommand{\entoure}[4][red,thick,densely dashed]{
-	\draw[#1] (#2*0.1-0.05,-#4*0.8-0.125) -- ++(0,{(#4-#3+1)*0.8-0.05}) -- ++(0.4,0.4) -- ++ (0,{-(#4-#3+1)*0.8+0.05}) -- cycle ;
+	\filldraw[red,thick,densely dashed,fill opacity=0.333,#1] (#2*0.1-0.05,-#4*0.8-0.125) -- ++(0,{(#4-#3+1)*0.8-0.05}) -- ++(0.4,0.4) -- ++ (0,{-(#4-#3+1)*0.8+0.05}) -- cycle	;
 }
 
 \newcommand{\limite}[2][teal!50,thick,densely dotted]{
@@ -231,7 +229,6 @@ A \TikzAnimate's animation is made of steps. Each step draws transparencies whic
 	%\def\label{Liste de transparents : }
 	%\transparentlist{0,...,20}{\label}
 	\def\label{Frame \thedy, make of transparencies~: }
-	
 	
 	\transparentlist{0,1}{\label}
 	\transparentlist{0,2}{\label}
@@ -329,7 +326,7 @@ Some initialisations.
 }	
 \end{lstlisting}
 
-Animation wil start at 1 frame by seconde.
+Animation will start at 1 frame by seconde.
 
 Then we create helping construction points and a transparency which will not create a frame. It only show on first frame.
 
@@ -356,7 +353,7 @@ Then we create helping construction points and a transparency which will not cre
 	}
 \end{lstlisting}
 
-We create a new transparency will be shown on next frame to end of the 4th frame after this one.
+We create a new transparency will be shown on next frame to end of the 4th step after this one.
 
 \begin{lstlisting}[name=exemplecomplet]
 	\step{0}[4.0]{
@@ -365,7 +362,7 @@ We create a new transparency will be shown on next frame to end of the 4th frame
 	}
 \end{lstlisting}
 
-We create a new transparency will be shown on next frame to the end of the 5th frame after this one.
+We create a new transparency will be shown on next frame to the end of the 5th step after this one.
 
 \begin{lstlisting}[name=exemplecomplet]
 	\step{0}[5.0]{
@@ -390,7 +387,7 @@ Then we create one transparency which will be shown for all next ones containing
 	}
 \end{lstlisting}
 
-First moving step at a frame rate of 5 images by second, for 10 transparencies, last will be lasting 1 images.
+First moving step at a frame rate of 5 images by second, for 10 transparencies, last will be lasting 1 image.
 
 \begin{lstlisting}[name=exemplecomplet]
 	% first triangle moves :
@@ -475,14 +472,13 @@ We do the same for the second triangle.
 A visual proof of Pythagore's theorem.
 
 \begin{center}
-
 \gdef\aLen{5}
 \gdef\bLen{2}
 \pgfmathsetmacro{\cLen}{sqrt(\aLen^2+\bLen^2)}
 \tikzset{bleu/.style={fill=blue!30,fill opacity=0.5},rouge/.style={fill=red!30,fill opacity=0.5}} 
 
-\tikzanim[poster=0,controls]{5}{
-	\useasboundingbox(-0.1,-\bLen-0.1)rectangle(\aLen+\bLen+0.1,\aLen+0.1) ;
+\tikzanim[poster=0,controls]{5}[>=latex,inner sep=2pt]{
+	\useasboundingbox(-0.75,-\bLen-0.75)rectangle(\aLen+\bLen+0.75,\aLen+0.75) ;
 }{
 	\step[1]{0}[1]{
 		
@@ -502,6 +498,10 @@ A visual proof of Pythagore's theorem.
 		\coordinate(I)at(0,\aLen-\bLen) ;
 		\coordinate(J)at($(A)+(H)-(G)$);
 		\fill[bleu] (C) -- (D) -- (I) -- cycle ;
+		
+		\path(A) --node{$a^2$} (C) ;
+		\path(E) --node{$b^2$} (G) ;
+		
 	}
 	\step{0}[4.0]{
 		\fill[bleu] (I) -- (A) -- (J) -- cycle ;
@@ -510,18 +510,23 @@ A visual proof of Pythagore's theorem.
 		\fill[rouge] (E) -- (F) -- (H) -- cycle ;
 	}
 	\step{1}{
-		\draw (A) -- (B) -- (C) -- (D) --cycle ;
-		\draw (B) -- (E) -- (F) -- (G) --cycle ;
+		\draw[blue,line width=2pt] (A) -- (B) -- (C) -- (D) --cycle ;
+		\draw[red,line width=2pt] (B) -- (E) -- (F) -- (G) --cycle ;
 		
 		\fill[bleu] (I) -- (J) -- (B) -- (C) -- cycle ;
 		\draw (J) -- (B) -- (C) ; \draw[densely dotted] (C) -- (I) -- (J) ;
 			
 		\fill[rouge] (B) -- (E) -- (H) -- (G) -- cycle ;
 		\draw (H) -- (G) -- (B) -- (E) ; \draw[densely dotted] (E) -- (H) ;
+		
+		\draw[<->]($(I)-(0.3,0)$)--node[fill=white]{$b$} ($(D)-(0.3,0)$) ;
+		\draw[<->]($(D)+(0,0.3)$)--node[fill=white]{$a$} ($(C)+(0,0.3)$) ;
+		\draw[<->]($(E)+(0.3,0)$)--node[fill=white]{$b$} ($(F)+(0.3,0)$) ;
+		
 	}
 
 	\step[5]{10}[1]{
-		\coordinate(M)at($(C)!\framepos!(E)$);% Point at \framepos on [CE]
+		\coordinate(M)at($(C)!\framepos!(E)$);% Point à \framepos sur [CE]
 		\coordinate(CM)at($(M)-(C)$) ;
 		\coordinate(ICM)at($(I)+(CM)$);
 		\coordinate(CCM)at($(C)+(CM)$);
@@ -531,7 +536,7 @@ A visual proof of Pythagore's theorem.
 		\fill[bleu] (ICM) -- (CCM) -- (DCM) -- cycle ;
 		\draw[densely dotted] (ICM) -- (CCM) ;
 		\draw (CCM) -- (DCM) -- (ICM) ;
-		\draw[-latex](S)--(S') ;
+		\draw[->](S)--(S') ;
 	}
 	
 	\step{1}{
@@ -541,7 +546,7 @@ A visual proof of Pythagore's theorem.
 	}
 	
 	\step{10}[1]{
-		\coordinate(N)at($(I)!\framepos!(C)$);% Point at \framepos on [IC]
+		\coordinate(N)at($(I)!\framepos!(C)$);% Point à \framepos sur [IC]
 		\coordinate(IN)at($(N)-(I)$) ;
 		\coordinate(IIN)at($(I)+(IN)$);
 		\coordinate(JIN)at($(J)+(IN)$);
@@ -551,7 +556,7 @@ A visual proof of Pythagore's theorem.
 		\fill[bleu] (IIN) -- (JIN) -- (AIN) -- cycle ;
 		\draw[densely dotted] (IIN) -- (JIN) ;
 		\draw (JIN) -- (AIN) -- (IIN) ;
-		\draw[-latex](T)--(T') ;
+		\draw[->](T)--(T') ;
 	}
 	
 	\step{1}{
@@ -561,7 +566,7 @@ A visual proof of Pythagore's theorem.
 	}
 	
 	\step{10}[1]{
-		\coordinate(P)at($(H)!\framepos!(J)$);% Point at \framepos on [HJ]
+		\coordinate(P)at($(H)!\framepos!(J)$);% Point à \framepos sur [HJ]
 		\coordinate(HP)at($(P)-(H)$) ;
 		\coordinate(EHP)at($(E)+(HP)$);
 		\coordinate(FHP)at($(F)+(HP)$);
@@ -571,7 +576,7 @@ A visual proof of Pythagore's theorem.
 		\fill[rouge] (EHP) -- (FHP) -- (HHP) -- cycle ;
 		\draw[densely dotted] (EHP) -- (HHP) ;
 		\draw (EHP) -- (FHP) -- (HHP) ;
-		\draw[-latex](U)--(U') ;
+		\draw[->](U)--(U') ;
 	}
 	
 	\step{1}{
@@ -579,8 +584,12 @@ A visual proof of Pythagore's theorem.
 		\draw[densely dotted] (EHP) -- (HHP) ;
 		\draw (EHP) -- (FHP) -- (HHP) ;
 	}
+	\step{1}{
+		\draw[line width=2pt] (C) -- (I) -- (EHP) -- (E) -- cycle ;
+		\draw[<->] ($(I)!0.3/\cLen!(EHP)$) --node[fill=blue!15]{$c$} ($(C)!0.3/\cLen!(E)$) ;
+		\path (EHP) -- node{${\color{blue}a^2} + {\color{red}b^2} = c^2$} (C) ;
+	}
 }
-
 \end{center}
 
 \end{document}
