@@ -26,12 +26,12 @@ Défault value : no option
 
 This macro define a new animation’s step. animate uses a transparencies’ stack. Each animation’s frame
 is draw by showing all the stack. `\step` manage the stack and frame frame creation.
-At start, the stack is empty. A \step call will :
-(1) create first image of the step, put it on the stack for a frame.
-(2) remove last image of the stack.
-(3) create next image, put it on the stack for a frame.
-(4) If it’s not step’s end, go to (2).
-(5) If it’s step’s end, last image will stay on stack for some define time.
+At start, the stack is empty. A `\step` call will :
+1. create first image of the step, put it on the stack for a frame.
+2. remove last image of the stack.
+3. create next image, put it on the stack for a frame.
+4. If it’s not step’s end, go to 2.
+5. If it’s step’s end, last image will stay on stack for some define time.
 
 Syntaxe :
 `\step[*] [frame rate] {images} [duration] {tikz’ code}`
@@ -58,7 +58,7 @@ Syntax :
 * {tikz’s code} : set tikz’s code to be drawn on each transparency chargé de dessiner sur tous les
 transparents. This code should use all previous initialised code, \framepos and \iframe.
 
-#3 timeline
+# 3 timeline
 `animate` ues a timeline file to manage transparencies’ stack. tikzanim will create a timeline file by
 animation. They are named : `\jobname.tzc#.tln`. You can use them for debug purpose.
 
