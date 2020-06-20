@@ -1,0 +1,138 @@
+\documentclass{beamer}
+
+\usepackage{tikzanim}
+\usetikzlibrary{calc,intersections,tikzmark,decorations.pathreplacing}
+
+\gdef\aLen{5}
+\gdef\bLen{2}
+\pgfmathsetmacro{\cLen}{sqrt(\aLen^2+\bLen^2)}
+\tikzset{bleu/.style={fill=blue!30,fill opacity=0.5},rouge/.style={fill=red!30,fill opacity=0.5}} 
+
+
+\begin{document}
+	
+\begin{frame}{Un titre}
+	\begin{itemize}
+		\item Une animation :
+		
+		\tikzanim<2>[poster=0,controls]{5}[>=latex,scale=0.6,every node/.style={rounded corners=2pt,inner sep=1pt}]{
+			\useasboundingbox(-0.75,-\bLen-0.75)rectangle(\aLen+\bLen+0.75,\aLen+0.75) ;
+		}{
+			\step[1]{0}[1]{
+				
+				\coordinate(A)at(0,0) ;
+				\coordinate(B)at(\aLen,0) ;
+				\coordinate(C)at(\aLen,\aLen) ;
+				\coordinate(D)at(0,\aLen) ;
+				
+				\coordinate(E)at(\aLen+\bLen,0) ;
+				\coordinate(F)at(\aLen+\bLen,\bLen) ;
+				\coordinate(G)at(\aLen,\bLen) ;
+
+				\path[name path=EC](E)--(C) ;
+				\path[name path=FG](F)--(G) ;
+				\path[name intersections={of=EC and FG,by=H}] ;
+
+				\coordinate(I)at(0,\aLen-\bLen) ;
+				\coordinate(J)at($(A)+(H)-(G)$);
+				\fill[bleu] (C) -- (D) -- (I) -- cycle ;
+				
+				\path(A) --node{$a^2$} (C) ;
+				\path(E) --node{$b^2$} (G) ;
+				
+			}
+			\step{0}[4.0]{
+				\fill[bleu] (I) -- (A) -- (J) -- cycle ;
+			}
+			\step{0}[5.0]{
+				\fill[rouge] (E) -- (F) -- (H) -- cycle ;
+			}
+			\step{1}{
+				\draw[blue,line width=2pt] (A) -- (B) -- (C) -- (D) --cycle ;
+				\draw[red,line width=2pt] (B) -- (E) -- (F) -- (G) --cycle ;
+				
+				\fill[bleu] (I) -- (J) -- (B) -- (C) -- cycle ;
+				\draw (J) -- (B) -- (C) ; \draw[densely dotted] (C) -- (I) -- (J) ;
+					
+				\fill[rouge] (B) -- (E) -- (H) -- (G) -- cycle ;
+				\draw (H) -- (G) -- (B) -- (E) ; \draw[densely dotted] (E) -- (H) ;
+				
+				\draw[<->]($(I)-(0.3,0)$)--node[fill=white]{$b$} ($(D)-(0.3,0)$) ;
+				\draw[<->]($(D)+(0,0.3)$)--node[fill=white]{$a$} ($(C)+(0,0.3)$) ;
+				\draw[<->]($(E)+(0.3,0)$)--node[fill=white]{$b$} ($(F)+(0.3,0)$) ;
+				
+			}
+
+			\step[5]{10}[1]{
+				\coordinate(M)at($(C)!\framepos!(E)$);% Point à \framepos sur [CE]
+				\coordinate(CM)at($(M)-(C)$) ;
+				\coordinate(ICM)at($(I)+(CM)$);
+				\coordinate(CCM)at($(C)+(CM)$);
+				\coordinate(DCM)at($(D)+(CM)$);
+				\coordinate(S)at(barycentric cs:I=1,C=1,D=1);
+				\coordinate(S')at(barycentric cs:ICM=1,CCM=1,DCM=1);
+				\fill[bleu] (ICM) -- (CCM) -- (DCM) -- cycle ;
+				\draw[densely dotted] (ICM) -- (CCM) ;
+				\draw (CCM) -- (DCM) -- (ICM) ;
+				\draw[->](S)--(S') ;
+			}
+			
+			\step{1}{
+				\fill[bleu] (ICM) -- (CCM) -- (DCM) -- cycle ;
+				\draw[densely dotted] (ICM) -- (CCM) ;
+				\draw (CCM) -- (DCM) -- (ICM) ;
+			}
+			
+			\step{10}[1]{
+				\coordinate(N)at($(I)!\framepos!(C)$);% Point à \framepos sur [IC]
+				\coordinate(IN)at($(N)-(I)$) ;
+				\coordinate(IIN)at($(I)+(IN)$);
+				\coordinate(JIN)at($(J)+(IN)$);
+				\coordinate(AIN)at($(A)+(IN)$);
+				\coordinate(T)at(barycentric cs:I=1,J=1,A=1);
+				\coordinate(T')at(barycentric cs:IIN=1,JIN=1,AIN=1);
+				\fill[bleu] (IIN) -- (JIN) -- (AIN) -- cycle ;
+				\draw[densely dotted] (IIN) -- (JIN) ;
+				\draw (JIN) -- (AIN) -- (IIN) ;
+				\draw[->](T)--(T') ;
+			}
+			
+			\step{1}{
+				\fill[bleu] (IIN) -- (JIN) -- (AIN) -- cycle ;
+				\draw[densely dotted] (IIN) -- (JIN) ;
+				\draw (JIN) -- (AIN) -- (IIN) ;
+			}
+			
+			\step{10}[1]{
+				\coordinate(P)at($(H)!\framepos!(J)$);% Point à \framepos sur [HJ]
+				\coordinate(HP)at($(P)-(H)$) ;
+				\coordinate(EHP)at($(E)+(HP)$);
+				\coordinate(FHP)at($(F)+(HP)$);
+				\coordinate(HHP)at($(H)+(HP)$);
+				\coordinate(U)at(barycentric cs:E=1,F=1,H=1);
+				\coordinate(U')at(barycentric cs:EHP=1,FHP=1,HHP=1);
+				\fill[rouge] (EHP) -- (FHP) -- (HHP) -- cycle ;
+				\draw[densely dotted] (EHP) -- (HHP) ;
+				\draw (EHP) -- (FHP) -- (HHP) ;
+				\draw[->](U)--(U') ;
+			}
+			
+			\step{1}{
+				\fill[rouge] (EHP) -- (FHP) -- (HHP) -- cycle ;
+				\draw[densely dotted] (EHP) -- (HHP) ;
+				\draw (EHP) -- (FHP) -- (HHP) ;
+			}
+			\step{1}{
+				\draw[line width=2pt] (C) -- (I) -- (EHP) -- (E) -- cycle ;
+				\draw[<->] ($(I)!0.3/\cLen!(EHP)$) --node[fill=blue!15]{$c$} ($(C)!0.3/\cLen!(E)$) ;
+				\path (EHP) -- node{${\color{blue}a^2} + {\color{red}b^2} = c^2$} (C) ;
+			}
+		}
+		
+		Après l'animation.
+		
+		\item<3-> Un troisième {\ttfamily overlay}.
+	\end{itemize}
+\end{frame}		
+
+\end{document}

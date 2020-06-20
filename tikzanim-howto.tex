@@ -4,7 +4,7 @@
 \usepackage{amsmath}
 \usepackage{multicol}
 \usepackage{enumitem}
-\usepackage[dvipdfmx]{animate}
+\usepackage[margin=1cm,includefoot]{geometry}
 \usepackage{tikzanim}
 \usepackage[francais]{babel}
 \usetikzlibrary{calc,intersections,tikzmark,decorations.pathreplacing}
@@ -17,6 +17,7 @@
 	columns=fullflexible,
 	language={[LaTeX]TeX},
 	tabsize=2,
+	breaklines,
 	xleftmargin=2em,
 	backgroundcolor=\color{black!10},
 	numbers=left,
@@ -29,12 +30,6 @@
 	emphstyle=\color{purple},
 	commentstyle=\color{green!75!black},
 }
-
-\RequirePackage{vmargin,fancyhdr}
-
-\setmarginsrb{1cm}{1cm}{1cm}{1cm}{0cm}{0cm}{0cm}{1cm}
-
-\usetikzlibrary{calc}% a must to calculate animate steps
 
 \tikzset{construct line/.style={densely dashed,black!25}}
 
@@ -81,9 +76,15 @@ Une animation est constituée d'un certaine nombre d'étapes. Chaque étape dess
 	
 	\textbf{Syntaxe~:} 
 	
-	\quad {\ttfamily \textbackslash tikzanim [options animateinline] \{rafraîchissement\} [options tikz] \{initialisation\}\{étapes\}}
+	\quad {\ttfamily \textbackslash tikzanim} {\ttfamily <overlay>} {\ttfamily [options animateinline]} {\ttfamily \{rafraîchissement\}}
+	
+	{\ttfamily [options tikz]} {\ttfamily \{initialisation\}} {\ttfamily \{étapes\}}
 	
 	\begin{itemize}
+		\item {\ttfamily <overlay>} : le numero de l'{\ttfamily overlay} sur lequel sera affiché l'animation. Avant celui-ci, {\ttfamily\textbackslash tikzanim} affiche la première image, après celui-ci il affiche la dernière image. 
+		
+		\emph{Remarque : il est préférable que l'{\ttfamily overlay} se limite à un seul transparent, sinon l'animation sera générée de multiple
+		fois.}
 		\item {\ttfamily [options animateinline]} : les options qui seront passées à l'environnement {\ttfamily animateinline}.
 		
 		Valeur par défaut : {\ttfamily poster=last,controls}
@@ -98,7 +99,7 @@ Une animation est constituée d'un certaine nombre d'étapes. Chaque étape dess
 \subsection{\ttfamily\textbackslash step}
 
 	Cette macro définit une nouvelle étape de l'animation. \Animate\ définit une pile de transparents. Chaque image de l'animation est générée par l'affichage 
-	de toutes la pile de transparents à chaque instant. Le rôle de {\ttfamily\textbackslash step} est de gérer la création (avec \Tikz) et la gestion cette pile
+	de toute la pile de transparents à chaque instant. Le rôle de {\ttfamily\textbackslash step} est de gérer la création (avec \Tikz) et la gestion cette pile
 	(en générant un fichier timeline) pour créer les différents transparents qui permettrons créer les images de l'animation.
 		
 	Au début de l'animation, la pile est vide. Un appel à {\ttfamily\textbackslash step} va :
@@ -476,13 +477,14 @@ On procède de même pour le troisième triangle.
 
 Une démonstration visuelle du théorème de Pythagore.
 
+\begin{center}
 \gdef\aLen{5}
 \gdef\bLen{2}
 \pgfmathsetmacro{\cLen}{sqrt(\aLen^2+\bLen^2)}
 \tikzset{bleu/.style={fill=blue!30,fill opacity=0.5},rouge/.style={fill=red!30,fill opacity=0.5}} 
 
-\tikzanim[poster=0,controls]{5}{
-	\useasboundingbox(0,-\bLen)rectangle(\aLen+\bLen,\aLen) ;
+\tikzanim[poster=0,controls]{5}[>=latex,inner sep=2pt]{
+	\useasboundingbox(-0.75,-\bLen-0.75)rectangle(\aLen+\bLen+0.75,\aLen+0.75) ;
 }{
 	\step[1]{0}[1]{
 		
@@ -502,6 +504,10 @@ Une démonstration visuelle du théorème de Pythagore.
 		\coordinate(I)at(0,\aLen-\bLen) ;
 		\coordinate(J)at($(A)+(H)-(G)$);
 		\fill[bleu] (C) -- (D) -- (I) -- cycle ;
+		
+		\path(A) --node{$a^2$} (C) ;
+		\path(E) --node{$b^2$} (G) ;
+		
 	}
 	\step{0}[4.0]{
 		\fill[bleu] (I) -- (A) -- (J) -- cycle ;
@@ -510,14 +516,19 @@ Une démonstration visuelle du théorème de Pythagore.
 		\fill[rouge] (E) -- (F) -- (H) -- cycle ;
 	}
 	\step{1}{
-		\draw (A) -- (B) -- (C) -- (D) --cycle ;
-		\draw (B) -- (E) -- (F) -- (G) --cycle ;
+		\draw[blue,line width=2pt] (A) -- (B) -- (C) -- (D) --cycle ;
+		\draw[red,line width=2pt] (B) -- (E) -- (F) -- (G) --cycle ;
 		
 		\fill[bleu] (I) -- (J) -- (B) -- (C) -- cycle ;
 		\draw (J) -- (B) -- (C) ; \draw[densely dotted] (C) -- (I) -- (J) ;
 			
 		\fill[rouge] (B) -- (E) -- (H) -- (G) -- cycle ;
 		\draw (H) -- (G) -- (B) -- (E) ; \draw[densely dotted] (E) -- (H) ;
+		
+		\draw[<->]($(I)-(0.3,0)$)--node[fill=white]{$b$} ($(D)-(0.3,0)$) ;
+		\draw[<->]($(D)+(0,0.3)$)--node[fill=white]{$a$} ($(C)+(0,0.3)$) ;
+		\draw[<->]($(E)+(0.3,0)$)--node[fill=white]{$b$} ($(F)+(0.3,0)$) ;
+		
 	}
 
 	\step[5]{10}[1]{
@@ -531,7 +542,7 @@ Une démonstration visuelle du théorème de Pythagore.
 		\fill[bleu] (ICM) -- (CCM) -- (DCM) -- cycle ;
 		\draw[densely dotted] (ICM) -- (CCM) ;
 		\draw (CCM) -- (DCM) -- (ICM) ;
-		\draw[-latex](S)--(S') ;
+		\draw[->](S)--(S') ;
 	}
 	
 	\step{1}{
@@ -551,7 +562,7 @@ Une démonstration visuelle du théorème de Pythagore.
 		\fill[bleu] (IIN) -- (JIN) -- (AIN) -- cycle ;
 		\draw[densely dotted] (IIN) -- (JIN) ;
 		\draw (JIN) -- (AIN) -- (IIN) ;
-		\draw[-latex](T)--(T') ;
+		\draw[->](T)--(T') ;
 	}
 	
 	\step{1}{
@@ -571,7 +582,7 @@ Une démonstration visuelle du théorème de Pythagore.
 		\fill[rouge] (EHP) -- (FHP) -- (HHP) -- cycle ;
 		\draw[densely dotted] (EHP) -- (HHP) ;
 		\draw (EHP) -- (FHP) -- (HHP) ;
-		\draw[-latex](U)--(U') ;
+		\draw[->](U)--(U') ;
 	}
 	
 	\step{1}{
@@ -579,7 +590,13 @@ Une démonstration visuelle du théorème de Pythagore.
 		\draw[densely dotted] (EHP) -- (HHP) ;
 		\draw (EHP) -- (FHP) -- (HHP) ;
 	}
+	\step{1}{
+		\draw[line width=2pt] (C) -- (I) -- (EHP) -- (E) -- cycle ;
+		\draw[<->] ($(I)!0.3/\cLen!(EHP)$) --node[fill=blue!15]{$c$} ($(C)!0.3/\cLen!(E)$) ;
+		\path (EHP) -- node{${\color{blue}a^2} + {\color{red}b^2} = c^2$} (C) ;
+	}
 }
+\end{center}
 
 
 \end{document}
